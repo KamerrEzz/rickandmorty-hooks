@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useReducer } from "react";
+import React, { useState, useEffect, useReducer, useMemo } from "react";
 import CharacterCard from "./characterCard";
-import CharacterFavorite from "./characterFavorite.jsx"
+import CharacterFavorite from "./characterFavorite.jsx";
 import {
   favoriteCharacter,
   stateInicial,
@@ -8,6 +8,7 @@ import {
 
 function Character() {
   const [character, setCharacter] = useState([]);
+  const [search, setSearch] = useState("");
   const [favoriteCharacters, dispatch] = useReducer(
     favoriteCharacter,
     stateInicial
@@ -20,6 +21,22 @@ function Character() {
       payload: character,
     });
   };
+
+  const handleSearch = (e) => {
+    setSearch(e.target.value);
+  };
+
+  // const filtederedCharacters = character.filter((character) => {
+  //   return character.name.toLowerCase().includes(search.toLowerCase());
+  // });
+
+  const filtederedCharacters = useMemo(
+    () =>
+      character.filter((character) => {
+        return character.name.toLowerCase().includes(search.toLowerCase());
+      }),
+    [search, character]
+  );
 
   useEffect(() => {
     fetch("https://rickandmortyapi.com/api/character")
@@ -40,8 +57,11 @@ function Character() {
           ))}
         </div>
       </section>
+      <section>
+        <input type="text" value={search} onChange={handleSearch} />
+      </section>
       <section className="flex justify-center items-center flex-wrap">
-        {character.map((character) => (
+        {filtederedCharacters.map((character) => (
           <CharacterCard
             key={character.id}
             character={character}
