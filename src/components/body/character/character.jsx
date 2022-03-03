@@ -1,19 +1,23 @@
-import React, { useState, useEffect, useReducer, useMemo } from "react";
+import React, { useState, useReducer, useMemo, useRef, useCallback } from "react";
 import CharacterCard from "./characterCard";
 import CharacterFavorite from "./characterFavorite.jsx";
+import CharacterSearh from "./characterSearh";
 import {
   favoriteCharacter,
   stateInicial,
 } from "../../../redux/CharacterReduce";
+import useCharacter from "../../../hooks/useCharacter";
 
 function Character() {
-  const [character, setCharacter] = useState([]);
   const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
+  const searchInput = useRef(null);
   const [favoriteCharacters, dispatch] = useReducer(
     favoriteCharacter,
     stateInicial
-  );
-
+    );
+    const character = useCharacter(`https://rickandmortyapi.com/api/character?page=${page}`);
+    
   const addFavorite = (character) => {
     console.log(character);
     dispatch({
@@ -22,9 +26,14 @@ function Character() {
     });
   };
 
-  const handleSearch = (e) => {
-    setSearch(e.target.value);
-  };
+  // const handleSearch = (e) => {
+  //   // setSearch(e.target.value);
+  //   setSearch(searchInput.current.value);
+  // };
+
+  const handleSearch = useCallback(() => {
+    setSearch(searchInput.current.value);
+  }, []);
 
   // const filtederedCharacters = character.filter((character) => {
   //   return character.name.toLowerCase().includes(search.toLowerCase());
@@ -37,13 +46,6 @@ function Character() {
       }),
     [search, character]
   );
-
-  useEffect(() => {
-    fetch("https://rickandmortyapi.com/api/character")
-      .then((response) => response.json())
-      .then((data) => setCharacter(data.results))
-      .catch((error) => console.log(error));
-  }, []);
 
   return (
     <React.Fragment>
@@ -58,7 +60,11 @@ function Character() {
         </div>
       </section>
       <section>
-        <input type="text" value={search} onChange={handleSearch} />
+        <CharacterSearh search={search} searchInput={searchInput} handleSearch={handleSearch} />
+      </section>
+      <section>
+        <button className="p-2 bg-slate-500 m-2" onClick={() => setPage(page - 1)} > ◄ </button>
+        <button className="p-2 bg-slate-500 m-2" onClick={() => setPage(page + 1)} > ► </button>
       </section>
       <section className="flex justify-center items-center flex-wrap">
         {filtederedCharacters.map((character) => (
